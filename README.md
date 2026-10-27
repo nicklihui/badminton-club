@@ -37,22 +37,26 @@ It prints the addresses to open:
 ```
 Badminton club site is running.
   On this computer:  http://localhost:3000
-  On phones (Wi-Fi): http://192.168.1.23:3000
+  On phones (Wi-Fi): http://<laptop-ip>:3000
 ```
+
+`<laptop-ip>` is the laptop's address on the Wi-Fi network. The command prints the real one.
 
 - Phones must be on the same Wi-Fi as the laptop.
 - On Windows, allow Node.js through the firewall when asked, choosing **private networks**. Otherwise phones can't connect.
 - Stop the site with `Ctrl+C`.
 
-**Update to a new version:**
+**Get the latest changes:**
+
+When this repository is updated with new features or fixes, the laptop running the site still has the old copy. To bring it up to date, stop the site and run:
 
 ```sh
-git pull
-npm ci
-npm run build
+git pull        # download the latest code
+npm ci          # install anything new it needs
+npm run build   # rebuild the site
 ```
 
-Then start it again with `npm run local`. Existing results are kept, and the database upgrades itself.
+Then start it again with `npm run local`. Players, tournaments and results are kept, and the database upgrades itself if needed.
 
 ## Using the site
 
