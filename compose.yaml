@@ -1,0 +1,15 @@
+services:
+  club:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      CLUB_NAME: "Badminton Club"
+      # The public URL people use to reach the site (required for forms to work)
+      ORIGIN: "https://club.example.org"
+    volumes:
+      - club-data:/data
+
+volumes:
+  club-data:

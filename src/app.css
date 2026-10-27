@@ -1,0 +1,385 @@
+/*
+ * Club look: crimson ground, navy brush strokes and halftone dots, tall squared
+ * capitals set on navy plates. Brand band stays crimson in both themes; content
+ * sits on a cool neutral (light) or deep navy (dark).
+ */
+:root {
+	--crimson: #8a0624;
+	--crimson-deep: #6e041c;
+	--navy: #13233f;
+	--navy-soft: #1d3158;
+	--on-dark: #ffffff;
+
+	--bg: #f3f4f7;
+	--surface: #ffffff;
+	--ink: #111a2e;
+	--muted: #5b6478;
+	--line: #dcdfe6;
+	--accent: #8a0624; /* links, primary buttons, emphasis */
+	--accent-deep: #6e041c;
+	--accent-text: #8a0624; /* accent used as text on --surface */
+	--plate: #13233f; /* navy plates: match courts, score bars */
+	--tint: #f6e3e7;
+	--warn: #b4451a;
+	--focus: #13233f;
+
+	--display: 'Big Shoulders Display', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+	--body: 'Barlow', 'Segoe UI', system-ui, sans-serif;
+	--radius: 4px;
+	color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #0b1222;
+		--surface: #121c31;
+		--ink: #e9ecf3;
+		--muted: #98a1b5;
+		--line: #26314a;
+		--accent: #a3092d;
+		--accent-deep: #8a0624;
+		--accent-text: #ff7d97;
+		--plate: #1d3158;
+		--tint: #3a1421;
+		--warn: #f08a5d;
+		--focus: #ff7d97;
+		color-scheme: dark;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+html {
+	-webkit-text-size-adjust: 100%;
+}
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--body);
+	font-size: 16px;
+	line-height: 1.5;
+	overflow-x: clip;
+}
+h1,
+h2,
+h3 {
+	font-family: var(--display);
+	margin: 0;
+	line-height: 1;
+	text-transform: uppercase;
+	text-wrap: balance;
+	letter-spacing: 0.01em;
+}
+h1 {
+	font-size: clamp(44px, 9vw, 84px);
+	font-weight: 800;
+}
+h2 {
+	font-size: 32px;
+	font-weight: 800;
+}
+h3 {
+	font-size: 24px;
+	font-weight: 800;
+}
+p {
+	margin: 0;
+}
+a {
+	color: var(--accent-text);
+}
+button,
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+}
+:focus-visible {
+	outline: 2px solid var(--focus);
+	outline-offset: 2px;
+}
+img {
+	max-width: 100%;
+}
+
+.container {
+	max-width: 960px;
+	margin: 0 auto;
+	padding-left: max(16px, env(safe-area-inset-left, 0px));
+	padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.stack {
+	display: grid;
+	gap: 20px;
+}
+.eyebrow {
+	font-weight: 500;
+	font-size: 14px;
+	letter-spacing: 0.32em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+.muted {
+	color: var(--muted);
+}
+.small {
+	font-size: 14px;
+}
+.num {
+	font-variant-numeric: tabular-nums;
+}
+
+/* A navy brush plate: the club's signature block behind titles and scores. */
+.plate {
+	background: var(--plate);
+	color: var(--on-dark);
+	clip-path: polygon(0.8% 9%, 4% 2%, 38% 5%, 70% 0, 99% 6%, 100% 88%, 96% 100%, 55% 95%, 18% 100%, 0 93%);
+	padding: 0.12em 0.5em 0.08em;
+	display: inline-block;
+}
+
+/* Buttons */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	border: 1px solid var(--line);
+	background: var(--surface);
+	border-radius: var(--radius);
+	padding: 8px 16px;
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 15px;
+	text-decoration: none;
+	color: var(--ink);
+	white-space: nowrap;
+}
+.btn:hover:not(:disabled) {
+	border-color: var(--muted);
+}
+.btn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+.btn.primary {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: var(--on-dark);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-size: 14px;
+}
+.btn.primary:hover:not(:disabled) {
+	background: var(--accent-deep);
+	border-color: var(--accent-deep);
+}
+.btn.navy {
+	background: var(--plate);
+	border-color: var(--plate);
+	color: var(--on-dark);
+}
+.btn.danger {
+	color: var(--warn);
+}
+.btn.sm {
+	padding: 4px 10px;
+	font-size: 13px;
+}
+.btn.link {
+	border: 0;
+	background: none;
+	padding: 4px 6px;
+	color: var(--muted);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	font-weight: 500;
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+/* Panels and forms */
+.panel {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 18px 20px;
+}
+.field {
+	display: grid;
+	gap: 4px;
+	min-width: 0;
+}
+.field > span {
+	font-weight: 600;
+	font-size: 14px;
+}
+.input,
+.field input,
+.field select,
+.field textarea {
+	width: 100%;
+	border: 1px solid var(--line);
+	background: var(--bg);
+	border-radius: var(--radius);
+	padding: 8px 10px;
+}
+.field textarea {
+	resize: vertical;
+}
+.input:focus,
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+	border-color: var(--accent-text);
+	outline: none;
+}
+.form-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 12px;
+	align-items: end;
+}
+.hint {
+	font-size: 14px;
+	color: var(--muted);
+}
+.error {
+	color: var(--warn);
+	font-size: 14px;
+	font-weight: 500;
+}
+.notice {
+	background: var(--tint);
+	border-left: 4px solid var(--accent);
+	padding: 10px 14px;
+	font-size: 15px;
+}
+
+/* Status pills */
+.pill {
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	padding: 2px 9px;
+	border-radius: 2px;
+	border: 1px solid currentColor;
+	white-space: nowrap;
+}
+.pill.open {
+	color: var(--accent-text);
+}
+.pill.finished {
+	color: var(--muted);
+}
+.pill.todo {
+	color: var(--warn);
+}
+.chip {
+	background: var(--tint);
+	border-radius: 2px;
+	padding: 2px 10px;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--ink);
+}
+
+/* Tabs */
+.tabs {
+	display: flex;
+	gap: 4px;
+	border-bottom: 1px solid var(--line);
+	overflow-x: auto;
+}
+.tabs a {
+	padding: 10px 14px 8px;
+	font-family: var(--display);
+	font-size: 22px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--muted);
+	text-decoration: none;
+	border-bottom: 4px solid transparent;
+	margin-bottom: -1px;
+	white-space: nowrap;
+}
+.tabs a[aria-current='page'] {
+	color: var(--ink);
+	border-bottom-color: var(--accent);
+}
+.tabs .count {
+	font-family: var(--body);
+	font-size: 13px;
+	font-weight: 600;
+	margin-left: 5px;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Tables */
+.table-wrap {
+	overflow-x: auto;
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+}
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-variant-numeric: tabular-nums;
+}
+th,
+td {
+	padding: 10px 12px;
+	text-align: right;
+	white-space: nowrap;
+}
+th {
+	font-weight: 600;
+	font-size: 12px;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--on-dark);
+	background: var(--plate);
+}
+td {
+	border-bottom: 1px solid var(--line);
+}
+tr:last-child td {
+	border-bottom: 0;
+}
+th.l,
+td.l {
+	text-align: left;
+}
+
+.empty {
+	text-align: center;
+	padding: 40px 16px;
+	border: 1px dashed var(--line);
+	border-radius: var(--radius);
+	color: var(--muted);
+	display: grid;
+	gap: 10px;
+	justify-items: center;
+}
+.empty strong {
+	font-family: var(--display);
+	font-size: 28px;
+	font-weight: 800;
+	text-transform: uppercase;
+	color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		animation: none !important;
+		transition: none !important;
+	}
+}
