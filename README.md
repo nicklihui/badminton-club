@@ -5,6 +5,7 @@ A small website for running the club's badminton tournaments. Organisers draw ra
 - **Random-partner doubles:** every round shuffles the players into new pairs, avoids repeat partners and opponents, and rotates who sits out fairly.
 - **Results per set:** matches are one set, best of 3 or best of 5, with the real points of each set (e.g. 21:15).
 - **Standings:** ranked by matches won, then sets won, then total points scored.
+- **English and German:** follows the browser's language; the **EN / DE** switch in the header changes it per device.
 
 ## Requirements
 

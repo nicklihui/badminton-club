@@ -1,9 +1,9 @@
 import type { FormatId } from './formats';
+import type { Messages } from './i18n';
 
 export type BestOf = 1 | 3 | 5;
 export const bestOfOptions: BestOf[] = [1, 3, 5];
 export const isBestOf = (n: number | null): n is BestOf => n === 1 || n === 3 || n === 5;
-export const bestOfLabel = (n: BestOf) => (n === 1 ? 'One set' : `Best of ${n}`);
 /** Sets a side must win to take the match. */
 export const setsToWin = (bestOf: BestOf) => Math.ceil(bestOf / 2);
 
@@ -59,19 +59,18 @@ export function matchResult(m: MatchView) {
  * Checks a match's sets against the best-of rule. Returns an error message, or null when valid:
  * every set decided, the match decided, and no set played after it was decided.
  */
-export function validateSets(sets: SetScore[], bestOf: BestOf): string | null {
+export function validateSets(sets: SetScore[], bestOf: BestOf, m: Messages['sets']): string | null {
 	const need = setsToWin(bestOf);
-	if (!sets.length) return 'Enter the points of at least one set.';
-	if (sets.length > bestOf) return `This tournament plays best of ${bestOf}.`;
+	if (!sets.length) return m.none;
+	if (sets.length > bestOf) return m.tooMany(bestOf);
 	let wa = 0;
 	let wb = 0;
 	for (const [i, s] of sets.entries()) {
-		if (wa === need || wb === need) return `The match was already decided before set ${i + 1}. Remove the extra set.`;
-		if (s.a === s.b) return `Set ${i + 1} can’t end level. Check the points.`;
+		if (wa === need || wb === need) return m.alreadyDecided(i + 1);
+		if (s.a === s.b) return m.level(i + 1);
 		if (s.a > s.b) wa++;
 		else wb++;
 	}
-	if (wa < need && wb < need)
-		return bestOf === 1 ? 'Enter the set’s points.' : `One pair must win ${need} sets. Add the remaining set${need - Math.max(wa, wb) > 1 ? 's' : ''}.`;
+	if (wa < need && wb < need) return bestOf === 1 ? m.enterSet : m.needMore(need, need - Math.max(wa, wb));
 	return null;
 }

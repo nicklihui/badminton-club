@@ -1,4 +1,5 @@
 import { isFormat, type FormatId } from '$lib/formats';
+import type { Problem } from '$lib/i18n';
 import { isBestOf, type BestOf, type Entry, type MatchView, type RoundView, type SetScore, type Tournament } from '$lib/types';
 import { all, get, run, tx } from './db';
 import { buildHistory, drawers } from './formats';
@@ -45,10 +46,10 @@ export function findOrCreatePlayers(names: string[]): number[] {
 	);
 }
 
-export function renamePlayer(id: number, name: string): string | null {
+export function renamePlayer(id: number, name: string): Problem | null {
 	name = name.trim().replace(/\s+/g, ' ').slice(0, 40);
-	if (!name) return 'Enter a name.';
-	if (get('SELECT 1 FROM players WHERE name = ? AND id != ?', name, id)) return `There is already a player called ${name}.`;
+	if (!name) return 'enterName';
+	if (get('SELECT 1 FROM players WHERE name = ? AND id != ?', name, id)) return 'playerExists';
 	run('UPDATE players SET name = ? WHERE id = ?', name, id);
 	return null;
 }
@@ -166,7 +167,7 @@ export function setEntryActive(tournamentId: number, playerId: number, active: b
 }
 
 /** Removes a player from a tournament, only if they have no rounds in it yet. */
-export function removeEntry(tournamentId: number, playerId: number): string | null {
+export function removeEntry(tournamentId: number, playerId: number): Problem | null {
 	const used = get(
 		`SELECT 1 FROM rounds r WHERE r.tournament_id = ? AND (
 			EXISTS (SELECT 1 FROM round_byes b WHERE b.round_id = r.id AND b.player_id = ?) OR
@@ -176,7 +177,7 @@ export function removeEntry(tournamentId: number, playerId: number): string | nu
 		playerId,
 		playerId
 	);
-	if (used) return 'This player already appears in a round. Mark them as not playing instead.';
+	if (used) return 'playerInRound';
 	run('DELETE FROM entries WHERE tournament_id = ? AND player_id = ?', tournamentId, playerId);
 	return null;
 }
@@ -224,17 +225,17 @@ export function listRounds(tournamentId: number): RoundView[] {
 	return [...byRound.values()];
 }
 
-export function drawNextRound(tournamentId: number): string | null {
-	return tx(() => {
+export function drawNextRound(tournamentId: number): Problem | null {
+	return tx((): Problem | null => {
 		const t = getTournament(tournamentId);
-		if (!t) return 'This tournament no longer exists.';
-		if (t.status === 'finished') return 'This tournament is finished. Reopen it to draw more rounds.';
+		if (!t) return 'tournamentGone';
+		if (t.status === 'finished') return 'tournamentFinished';
 		const active = listEntries(tournamentId)
 			.filter((e) => e.active)
 			.map((e) => e.playerId);
 		const rounds = listRounds(tournamentId);
 		const drawn = drawers[t.format]({ active, courts: t.courts, history: buildHistory(rounds) });
-		if (!drawn.matches.length) return 'Not enough players for a match. Add more players first.';
+		if (!drawn.matches.length) return 'notEnoughPlayers';
 
 		const number = (rounds.at(-1)?.number ?? 0) + 1;
 		const roundId = run('INSERT INTO rounds (tournament_id, number, created_at) VALUES (?, ?, ?)', tournamentId, number, Date.now()).id;
@@ -249,12 +250,11 @@ export function drawNextRound(tournamentId: number): string | null {
 }
 
 /** Deletes the latest round so it can be drawn again, only while none of its matches has a score. */
-export function undoLastRound(tournamentId: number): string | null {
-	return tx(() => {
+export function undoLastRound(tournamentId: number): Problem | null {
+	return tx((): Problem | null => {
 		const last = get<{ id: number }>('SELECT id FROM rounds WHERE tournament_id = ? ORDER BY number DESC LIMIT 1', tournamentId);
-		if (!last) return 'There is no round to remove.';
-		if (get('SELECT 1 FROM match_sets s JOIN matches m ON m.id = s.match_id WHERE m.round_id = ?', last.id))
-			return 'This round already has results. Clear them first to redraw it.';
+		if (!last) return 'noRound';
+		if (get('SELECT 1 FROM match_sets s JOIN matches m ON m.id = s.match_id WHERE m.round_id = ?', last.id)) return 'roundHasResults';
 		run('DELETE FROM rounds WHERE id = ?', last.id);
 		return null;
 	});
@@ -265,8 +265,8 @@ function matchInTournament(matchId: number, tournamentId: number) {
 }
 
 /** Replaces a match's result with these sets (already validated against the best-of rule). */
-export function setResult(tournamentId: number, matchId: number, sets: SetScore[]): string | null {
-	if (!matchInTournament(matchId, tournamentId)) return 'That match is not part of this tournament.';
+export function setResult(tournamentId: number, matchId: number, sets: SetScore[]): Problem | null {
+	if (!matchInTournament(matchId, tournamentId)) return 'matchNotInTournament';
 	tx(() => {
 		run('DELETE FROM match_sets WHERE match_id = ?', matchId);
 		sets.forEach((s, i) => run('INSERT INTO match_sets (match_id, set_no, score_a, score_b) VALUES (?, ?, ?, ?)', matchId, i + 1, s.a, s.b));

@@ -1,5 +1,6 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { error, redirect } from '@sveltejs/kit';
+import { msgs, type Problem } from '$lib/i18n';
 import { all, get, run } from './db';
 
 export const SESSION_COOKIE = 'club_session';
@@ -36,12 +37,12 @@ export function listAdmins() {
 	);
 }
 
-/** Returns an error message, or null when the admin was created. */
-export function createAdmin(username: string, password: string): string | null {
+/** Returns what's wrong, or null when the admin was created. */
+export function createAdmin(username: string, password: string): Problem | null {
 	username = username.trim();
-	if (!/^[\w.-]{3,32}$/.test(username)) return 'Usernames are 3–32 letters, digits, dots, dashes or underscores.';
-	if (password.length < 10) return 'Use a password of at least 10 characters.';
-	if (get('SELECT 1 FROM admins WHERE username = ?', username)) return 'That username is already taken.';
+	if (!/^[\w.-]{3,32}$/.test(username)) return 'badUsername';
+	if (password.length < 10) return 'shortPassword';
+	if (get('SELECT 1 FROM admins WHERE username = ?', username)) return 'usernameTaken';
 	run('INSERT INTO admins (username, password_hash, created_at) VALUES (?, ?, ?)', username, hashPassword(password), Date.now());
 	return null;
 }
@@ -58,10 +59,10 @@ export function checkLogin(username: string, password: string): Admin | null {
 	return verifyPassword(password, row.password_hash) ? { id: row.id, username: row.username } : null;
 }
 
-export function changePassword(adminId: number, current: string, next: string): string | null {
+export function changePassword(adminId: number, current: string, next: string): Problem | null {
 	const row = get<{ password_hash: string }>('SELECT password_hash FROM admins WHERE id = ?', adminId);
-	if (!row || !verifyPassword(current, row.password_hash)) return 'Your current password is not right.';
-	if (next.length < 10) return 'Use a new password of at least 10 characters.';
+	if (!row || !verifyPassword(current, row.password_hash)) return 'wrongPassword';
+	if (next.length < 10) return 'shortNewPassword';
 	run('UPDATE admins SET password_hash = ? WHERE id = ?', hashPassword(next), adminId);
 	return null;
 }
@@ -93,7 +94,7 @@ export function deleteSession(token: string) {
 
 /** For form actions: refuse unless an organiser is signed in. */
 export function requireAdmin(locals: App.Locals): Admin {
-	if (!locals.admin) error(401, 'Sign in as an organiser to do that.');
+	if (!locals.admin) error(401, msgs(locals.lang).problems.signInRequired);
 	return locals.admin;
 }
 

@@ -5,9 +5,13 @@
 	import MatchCard from '$lib/components/MatchCard.svelte';
 	import StandingsTable from '$lib/components/StandingsTable.svelte';
 	import { playersPerCourt } from '$lib/formats';
-	import { bestOfLabel, bestOfOptions, isScored } from '$lib/types';
+	import { msgs } from '$lib/i18n';
+	import { bestOfOptions, isScored } from '$lib/types';
 
 	let { data, form } = $props();
+
+	const m = $derived(msgs(data.lang));
+	const tm = $derived(m.tournament);
 
 	const tabs = ['rounds', 'standings', 'lineup'] as const;
 	type Tab = (typeof tabs)[number];
@@ -27,7 +31,7 @@
 	const latest = $derived(data.rounds.at(-1));
 	const unscoredInLatest = $derived(latest ? latest.matches.filter((m) => !isScored(m)).length : 0);
 	const nextNumber = $derived((latest?.number ?? 0) + 1);
-	const name = (id: number) => data.names[id] ?? 'Removed player';
+	const name = (id: number) => data.names[id] ?? m.removedPlayer;
 	const today = new Date().toISOString().slice(0, 10);
 
 	// Keep the page current while people enter scores on other phones.
@@ -42,7 +46,7 @@
 	});
 
 	function confirmDraw(e: MouseEvent) {
-		if (unscoredInLatest && !confirm(`Round ${latest!.number} still has ${unscoredInLatest} match${unscoredInLatest > 1 ? 'es' : ''} without a score. Draw round ${nextNumber} anyway?`))
+		if (unscoredInLatest && !confirm(tm.drawAnyway(latest!.number, unscoredInLatest, nextNumber)))
 			e.preventDefault();
 	}
 	const pickAll = (checked: boolean) => (e: MouseEvent) => {
@@ -55,10 +59,10 @@
 </script>
 
 <div class="stack">
-	<nav class="tabs" aria-label="Tournament sections">
-		<a href="?tab=rounds" data-sveltekit-noscroll aria-current={tab === 'rounds' ? 'page' : undefined}>Rounds<span class="count">{data.rounds.length || ''}</span></a>
-		<a href="?tab=standings" data-sveltekit-noscroll aria-current={tab === 'standings' ? 'page' : undefined}>Standings</a>
-		<a href="?tab=lineup" data-sveltekit-noscroll aria-current={tab === 'lineup' ? 'page' : undefined}>Line-up<span class="count">{data.entries.length || ''}</span></a>
+	<nav class="tabs" aria-label={tm.sections}>
+		<a href="?tab=rounds" data-sveltekit-noscroll aria-current={tab === 'rounds' ? 'page' : undefined}>{tm.tabRounds}<span class="count">{data.rounds.length || ''}</span></a>
+		<a href="?tab=standings" data-sveltekit-noscroll aria-current={tab === 'standings' ? 'page' : undefined}>{tm.tabStandings}</a>
+		<a href="?tab=lineup" data-sveltekit-noscroll aria-current={tab === 'lineup' ? 'page' : undefined}>{tm.tabLineup}<span class="count">{data.entries.length || ''}</span></a>
 	</nav>
 
 	{#if tab === 'rounds'}
@@ -66,27 +70,27 @@
 			{#if admin && isOpen}
 				<div class="panel drawbar">
 					<div class="info">
-						<span class="big">Round {nextNumber}</span>
+						<span class="big">{tm.round(nextNumber)}</span>
 						<span class="muted small num">
 							{#if active.length < perCourt}
-								Add at least {perCourt} players to draw a round ({active.length} playing).
+								{tm.needPlayers(perCourt, active.length)}
 							{:else}
-								{active.length} playing · {nCourts} court{nCourts === 1 ? '' : 's'} · {sitting} sitting out
+								{tm.drawSummary(active.length, nCourts, sitting)}
 							{/if}
 						</span>
 						<span class="muted small">
-							Matches: {bestOfLabel(t.bestOf).toLowerCase()}{t.bestOf === 1 ? '' : ' sets'} ·
-							<a href="?tab=lineup#settings">change</a>
+							{tm.matches}: {m.bestOfText(t.bestOf)} ·
+							<a href="?tab=lineup#settings">{tm.change}</a>
 						</span>
 					</div>
 					<div class="actions">
-						{#if latest && latest.matches.every((m) => !isScored(m))}
+						{#if latest && latest.matches.every((x) => !isScored(x))}
 							<form method="POST" action="?/undo" use:enhance>
-								<button class="btn link" onclick={ask(`Remove round ${latest.number} so you can draw it again?`)}>Redraw round {latest.number}</button>
+								<button class="btn link" onclick={ask(tm.redrawAsk(latest.number))}>{tm.redraw(latest.number)}</button>
 							</form>
 						{/if}
 						<form method="POST" action="?/draw" use:enhance>
-							<button class="btn primary" disabled={active.length < perCourt} onclick={confirmDraw}>Draw round {nextNumber}</button>
+							<button class="btn primary" disabled={active.length < perCourt} onclick={confirmDraw}>{tm.draw(nextNumber)}</button>
 						</form>
 					</div>
 					{#if form?.action === 'draw' && form?.message}<p class="error full">{form.message}</p>{/if}
@@ -95,20 +99,20 @@
 
 			{#if !data.rounds.length}
 				<div class="empty">
-					<strong>No rounds yet</strong>
-					Each round shuffles everyone into new doubles pairs, avoiding repeat partners where possible.
-					{#if admin && data.entries.length < perCourt}<a class="btn" href="?tab=lineup">Add players</a>{/if}
+					<strong>{tm.noRoundsTitle}</strong>
+					{tm.noRounds}
+					{#if admin && data.entries.length < perCourt}<a class="btn" href="?tab=lineup">{tm.addPlayers}</a>{/if}
 				</div>
 			{/if}
 
 			{#each data.rounds.toReversed() as r (r.id)}
 				<section class="round">
 					<div class="round-head">
-						<h2><span class="plate">Round {r.number}</span></h2>
-						<span class="muted small num">{r.matches.filter(isScored).length} of {r.matches.length} scored</span>
+						<h2><span class="plate">{tm.round(r.number)}</span></h2>
+						<span class="muted small num">{tm.scoredOf(r.matches.filter(isScored).length, r.matches.length)}</span>
 					</div>
 					{#if r.byes.length}
-						<div class="sitting muted small">Sitting out: {#each r.byes as id (id)}<span class="chip">{name(id)}</span>{/each}</div>
+						<div class="sitting muted small">{tm.sittingOut} {#each r.byes as id (id)}<span class="chip">{name(id)}</span>{/each}</div>
 					{/if}
 					<div class="matches">
 						{#each r.matches as m (m.id)}
@@ -126,14 +130,14 @@
 		<section class="stack">
 			{#if admin}
 				<form method="POST" action="?/addEntries" class="panel stack" use:enhance>
-					<h3>Add players</h3>
+					<h3>{tm.addPlayers}</h3>
 					{#if data.available.length}
 						<fieldset class="pick">
-							<legend class="hint">Club players</legend>
+							<legend class="hint">{tm.clubPlayers}</legend>
 							{#if data.available.length > 1}
 								<div class="pick-all">
-									<button type="button" class="btn link" onclick={pickAll(true)}>Select all</button>
-									<button type="button" class="btn link" onclick={pickAll(false)}>Clear</button>
+									<button type="button" class="btn link" onclick={pickAll(true)}>{tm.selectAll}</button>
+									<button type="button" class="btn link" onclick={pickAll(false)}>{tm.clear}</button>
 								</div>
 							{/if}
 							{#each data.available as p (p.id)}
@@ -142,16 +146,16 @@
 						</fieldset>
 					{/if}
 					<label class="field"
-						><span>New players</span><textarea name="names" rows="2" placeholder="Anna, Ben, Chloe…"></textarea></label
+						><span>{tm.newPlayers}</span><textarea name="names" rows="2" placeholder={tm.namesPlaceholder}></textarea></label
 					>
-					<span class="hint">Separate names with commas or new lines. New names are added to the club list too.</span>
+					<span class="hint">{tm.namesHint}</span>
 					{#if form?.action === 'addEntries' && form?.message}<p class="error">{form.message}</p>{/if}
-					<div><button class="btn primary">Add to tournament</button></div>
+					<div><button class="btn primary">{tm.addToTournament}</button></div>
 				</form>
 			{/if}
 
 			{#if !data.entries.length}
-				<div class="empty"><strong>No players yet</strong>{admin ? 'Add everyone who is playing. You need at least 4 for one court.' : 'The organiser hasn’t added players yet.'}</div>
+				<div class="empty"><strong>{tm.noPlayersTitle}</strong>{admin ? tm.noPlayersAdmin : tm.noPlayersViewer}</div>
 			{:else}
 				<div class="plist">
 					{#each [...data.entries].sort((a, b) => Number(b.active) - Number(a.active)) as e (e.playerId)}
@@ -159,72 +163,70 @@
 						{@const byes = data.rounds.filter((r) => r.byes.includes(e.playerId)).length}
 						<div class="prow" class:off={!e.active}>
 							<span class="pname">{e.name}</span>
-							<span class="muted small num">{played} played{byes ? ` · ${byes} sat out` : ''}</span>
+							<span class="muted small num">{tm.playedCount(played, byes)}</span>
 							{#if admin}
 								<form method="POST" action="?/setActive" use:enhance>
 									<input type="hidden" name="player" value={e.playerId} />
 									<input type="hidden" name="active" value={e.active ? '0' : '1'} />
-									<button class="btn sm" class:primary={e.active} aria-pressed={e.active}>{e.active ? 'Playing' : 'Not playing'}</button>
+									<button class="btn sm" class:primary={e.active} aria-pressed={e.active}>{e.active ? tm.active : tm.inactive}</button>
 								</form>
 								{#if !played && !byes}
 									<form method="POST" action="?/removeEntry" use:enhance>
 										<input type="hidden" name="player" value={e.playerId} />
-										<button class="btn link">Remove</button>
+										<button class="btn link">{tm.remove}</button>
 									</form>
 								{/if}
 							{:else if !e.active}
-								<span class="muted small">Left</span>
+								<span class="muted small">{tm.left}</span>
 							{/if}
 						</div>
 					{/each}
 				</div>
 				{#if form?.action === 'removeEntry' && form?.message}<p class="error">{form.message}</p>{/if}
-				{#if admin}<p class="hint">Switch someone to “Not playing” if they leave early. They keep their results and aren’t drawn into new rounds.</p>{/if}
+				{#if admin}<p class="hint">{tm.activeHint}</p>{/if}
 			{/if}
 
 			{#if admin}
 				<form id="settings" method="POST" action="?/settings" class="panel stack" use:enhance={() => async ({ update }) => update({ reset: false })}>
-					<h3>Tournament settings</h3>
+					<h3>{tm.settings}</h3>
 					<div class="form-grid">
-						<label class="field"><span>Name</span><input name="name" required maxlength="80" value={t.name} /></label>
-						<label class="field"><span>Date</span><input name="held_on" type="date" value={t.heldOn ?? today} /></label>
+						<label class="field"><span>{m.field.name}</span><input name="name" required maxlength="80" value={t.name} /></label>
+						<label class="field"><span>{m.field.date}</span><input name="held_on" type="date" value={t.heldOn ?? today} /></label>
 						<label class="field">
-							<span>Courts</span>
+							<span>{m.field.courts}</span>
 							<select name="courts" value={String(t.courts)}>
-								<option value="0">As many as needed</option>
+								<option value="0">{m.field.asManyAsNeeded}</option>
 								{#each Array.from({ length: 12 }, (_, i) => i + 1) as c (c)}<option value={String(c)}>{c}</option>{/each}
 							</select>
 						</label>
 						<label class="field">
-							<span>Sets per match</span>
+							<span>{m.field.setsPerMatch}</span>
 							<select name="best_of" value={String(t.bestOf)}>
-								{#each bestOfOptions as n (n)}<option value={String(n)}>{bestOfLabel(n)}</option>{/each}
+								{#each bestOfOptions as n (n)}<option value={String(n)}>{m.bestOf(n)}</option>{/each}
 							</select>
 						</label>
 					</div>
-					<p class="hint">Changing sets per match applies to results entered from now on. Results already saved keep their sets.</p>
+					<p class="hint">{tm.settingsHint}</p>
 					{#if form?.action === 'settings' && form?.message}<p class="error">{form.message}</p>{/if}
 					{#if form?.action === 'settings' && form?.done}<p class="hint">{form.done}</p>{/if}
-					<div><button class="btn">Save settings</button></div>
+					<div><button class="btn">{tm.saveSettings}</button></div>
 				</form>
 
 				<div class="panel stack">
-					<h3>{isOpen ? 'Finish tournament' : 'Reopen tournament'}</h3>
-					<p class="hint">
-						{isOpen ? 'Finishing stops new rounds being drawn. Results stay visible and you can reopen it later.' : 'Reopen to draw more rounds.'}
-					</p>
+					<h3>{isOpen ? tm.finishTitle : tm.reopenTitle}</h3>
+					<p class="hint">{isOpen ? tm.finishHint : tm.reopenHint}</p>
 					<form method="POST" action="?/status" use:enhance>
 						<input type="hidden" name="status" value={isOpen ? 'finished' : 'open'} />
-						<button class="btn">{isOpen ? 'Mark as finished' : 'Reopen'}</button>
+						<button class="btn">{isOpen ? tm.markFinished : tm.reopen}</button>
 					</form>
 				</div>
 
 				<form method="POST" action="?/delete" class="panel stack danger-zone">
-					<h3>Delete tournament</h3>
-					<p class="hint">Deletes every round and result in this tournament. Players stay in the club list. This can’t be undone.</p>
-					<label class="field"><span>Type “{t.name}” to confirm</span><input name="confirm" autocomplete="off" /></label>
+					<h3>{tm.deleteTitle}</h3>
+					<p class="hint">{tm.deleteHint}</p>
+					<label class="field"><span>{tm.deleteConfirm(t.name)}</span><input name="confirm" autocomplete="off" /></label>
 					{#if form?.action === 'delete' && form?.message}<p class="error">{form.message}</p>{/if}
-					<div><button class="btn danger">Delete tournament</button></div>
+					<div><button class="btn danger">{tm.deleteTitle}</button></div>
 				</form>
 			{/if}
 		</section>

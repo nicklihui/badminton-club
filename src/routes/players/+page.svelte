@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { msgs } from '$lib/i18n';
 
 	let { data, form } = $props();
+
+	const t = $derived(msgs(data.lang).players);
 
 	let editing = $state<number | null>(null);
 	let showArchived = $state(false);
@@ -28,27 +31,27 @@
 	{#if data.admin}
 		<form method="POST" action="?/add" class="panel add" use:enhance>
 			<label class="field grow"
-				><span>Add club players</span><textarea name="names" rows="1" placeholder="Anna, Ben, Chloe…"></textarea></label
+				><span>{t.addLabel}</span><textarea name="names" rows="1" placeholder="Anna, Ben, Chloe…"></textarea></label
 			>
-			<button class="btn primary">Add</button>
-			<span class="hint full">Separate several names with commas or new lines. You can also add players straight from a tournament.</span>
+			<button class="btn primary">{t.add}</button>
+			<span class="hint full">{t.addHint}</span>
 			{#if form?.message && !form?.id}<p class="error full">{form.message}</p>{/if}
 		</form>
 	{/if}
 
 	{#if !data.players.length}
-		<div class="empty"><strong>No players yet</strong>Players appear here once they are added to the club or a tournament.</div>
+		<div class="empty"><strong>{t.emptyTitle}</strong>{t.empty}</div>
 	{:else}
 		<div class="table-wrap">
 			<table>
 				<thead>
 					<tr>
-						<th class="l">Player</th>
-						<th>Events</th>
-						<th>Played</th>
-						<th>Won</th>
-						<th>Win %</th>
-						<th>Sets</th>
+						<th class="l">{t.player}</th>
+						<th>{t.events}</th>
+						<th>{t.played}</th>
+						<th>{t.won}</th>
+						<th>{t.winPct}</th>
+						<th>{t.sets}</th>
 						{#if data.admin}<th></th>{/if}
 					</tr>
 				</thead>
@@ -68,13 +71,13 @@
 											}}
 									>
 										<input type="hidden" name="id" value={p.id} />
-										<input class="input" name="name" value={p.name} maxlength="40" aria-label="New name" />
-										<button class="btn sm primary">Save</button>
-										<button type="button" class="btn link" onclick={() => (editing = null)}>Cancel</button>
+										<input class="input" name="name" value={p.name} maxlength="40" aria-label={t.newName} />
+										<button class="btn sm primary">{t.save}</button>
+										<button type="button" class="btn link" onclick={() => (editing = null)}>{msgs(data.lang).cancel}</button>
 									</form>
 									{#if form?.id === p.id && form?.message}<p class="error">{form.message}</p>{/if}
 								{:else}
-									{p.name}{#if p.archived}<span class="muted small"> · archived</span>{/if}
+									{p.name}{#if p.archived}<span class="muted small"> · {t.archived}</span>{/if}
 								{/if}
 							</td>
 							<td>{p.stats.tournaments}</td>
@@ -84,11 +87,11 @@
 							<td>{p.stats.setsWon}–{p.stats.setsLost}</td>
 							{#if data.admin}
 								<td class="tools">
-									<button class="btn link" onclick={() => (editing = p.id)}>Rename</button>
+									<button class="btn link" onclick={() => (editing = p.id)}>{t.rename}</button>
 									<form method="POST" action="?/archive" use:enhance style="display: inline">
 										<input type="hidden" name="id" value={p.id} />
 										<input type="hidden" name="archived" value={p.archived ? '0' : '1'} />
-										<button class="btn link">{p.archived ? 'Restore' : 'Archive'}</button>
+										<button class="btn link">{p.archived ? t.restore : t.archive}</button>
 									</form>
 								</td>
 							{/if}
@@ -97,11 +100,9 @@
 				</tbody>
 			</table>
 		</div>
-		<p class="hint">Ranked by win % across all tournaments, then by matches won. Points are shown in each tournament’s standings.</p>
+		<p class="hint">{t.rankHint}</p>
 		{#if archivedCount}
-			<label class="hint toggle"
-				><input type="checkbox" bind:checked={showArchived} /> Show {archivedCount} archived player{archivedCount === 1 ? '' : 's'}</label
-			>
+			<label class="hint toggle"><input type="checkbox" bind:checked={showArchived} /> {t.showArchived(archivedCount)}</label>
 		{/if}
 	{/if}
 </div>

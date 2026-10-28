@@ -4,6 +4,7 @@ import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = ({ locals }) => ({
 	admin: locals.admin,
+	lang: locals.lang,
 	clubName: env.CLUB_NAME || 'SG ULM DONAU/ILLER',
 	needsSetup: adminCount() === 0
 });

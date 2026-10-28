@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
+	import { msgs } from '$lib/i18n';
 	import { isScored, matchResult, setsToWin, type BestOf, type MatchView } from '$lib/types';
 
 	let {
@@ -10,6 +12,8 @@
 		error
 	}: { match: MatchView; names: Record<number, string>; admin: boolean; bestOf: BestOf; error?: string } = $props();
 
+	const m = $derived(msgs(page.data.lang));
+	const t = $derived(m.match);
 	let editing = $state(false);
 	const scored = $derived(isScored(match));
 	const result = $derived(matchResult(match));
@@ -19,20 +23,20 @@
 	// a one-set match shows the set's points on the plate; otherwise sets won, with each set listed below
 	const singleSet = $derived(match.sets.length === 1);
 	const setRows = $derived(Array.from({ length: Math.max(bestOf, match.sets.length) }, (_, i) => i + 1));
-	const name = (id: number) => names[id] ?? 'Removed player';
-	const teamLabel = (ids: number[]) => ids.map(name).join(' and ');
+	const name = (id: number) => names[id] ?? m.removedPlayer;
+	const teamLabel = (ids: number[]) => ids.map(name).join(` ${t.and} `);
 </script>
 
 <article class="match">
 	<div class="top">
-		<span class="court-no">Court {match.court}</span>
-		<span class="pill {scored ? 'open' : 'todo'}">{scored ? 'Final' : 'To play'}</span>
+		<span class="court-no">{t.court(match.court)}</span>
+		<span class="pill {scored ? 'open' : 'todo'}">{scored ? t.done : t.todo}</span>
 	</div>
 
 	<div class="court">
 		{#each [{ ids: match.a, side: 'a', won: aWon, lost: bWon }, { ids: match.b, side: 'b', won: bWon, lost: aWon }] as half (half.side)}
 			<div class="half {half.side}" class:won={half.won} class:lost={half.lost}>
-				{#if half.won}<span class="crown">Won</span>{/if}
+				{#if half.won}<span class="crown">{t.won}</span>{/if}
 				{#each half.ids as id (id)}<span class="pn">{name(id)}</span>{/each}
 			</div>
 		{/each}
@@ -54,26 +58,26 @@
 				<input type="hidden" name="match" value={match.id} />
 				{#each setRows as n (n)}
 					<div class="set-row">
-						<span class="set-label">Set {n}{#if n > setsToWin(bestOf)}<span class="opt"> if needed</span>{/if}</span>
-						<input class="score-in" name="set{n}a" inputmode="numeric" pattern="\d*" maxlength="2" placeholder="–" value={match.sets[n - 1]?.a ?? ''} aria-label="Set {n} points for {teamLabel(match.a)}" />
+						<span class="set-label">{t.set(n)}{#if n > setsToWin(bestOf)}<span class="opt"> {t.ifNeeded}</span>{/if}</span>
+						<input class="score-in" name="set{n}a" inputmode="numeric" pattern="\d*" maxlength="2" placeholder="–" value={match.sets[n - 1]?.a ?? ''} aria-label={t.pointsFor(n, teamLabel(match.a))} />
 						<span class="dash">:</span>
-						<input class="score-in" name="set{n}b" inputmode="numeric" pattern="\d*" maxlength="2" placeholder="–" value={match.sets[n - 1]?.b ?? ''} aria-label="Set {n} points for {teamLabel(match.b)}" />
+						<input class="score-in" name="set{n}b" inputmode="numeric" pattern="\d*" maxlength="2" placeholder="–" value={match.sets[n - 1]?.b ?? ''} aria-label={t.pointsFor(n, teamLabel(match.b))} />
 					</div>
 				{/each}
 				<div class="form-actions">
-					<button class="btn primary sm">Save result</button>
-					{#if editing}<button type="button" class="btn link" onclick={() => (editing = false)}>Cancel</button>{/if}
+					<button class="btn primary sm">{t.save}</button>
+					{#if editing}<button type="button" class="btn link" onclick={() => (editing = false)}>{m.cancel}</button>{/if}
 				</div>
 			</form>
 			{#if editing}
 				<form method="POST" action="?/clear" use:enhance={() => async ({ update }) => { await update(); editing = false; }}>
 					<input type="hidden" name="match" value={match.id} />
-					<button class="btn link" onclick={(e) => { if (!confirm('Clear this result? The match goes back to unplayed.')) e.preventDefault(); }}>Clear result</button>
+					<button class="btn link" onclick={(e) => { if (!confirm(t.clearAsk)) e.preventDefault(); }}>{t.clear}</button>
 				</form>
 			{/if}
 		{:else if scored}
 			<div class="result">
-				<span class="final plate num" aria-label={singleSet ? 'Final score' : 'Sets won'}>
+				<span class="final plate num" aria-label={singleSet ? t.finalScore : t.setsWon}>
 					{#if singleSet}
 						<span class={aWon ? 'w' : 'l'}>{match.sets[0].a}</span><span class="colon">:</span><span class={bWon ? 'w' : 'l'}>{match.sets[0].b}</span>
 					{:else}
@@ -81,16 +85,16 @@
 					{/if}
 				</span>
 				{#if !singleSet}
-					<ol class="sets num" aria-label="Set scores">
+					<ol class="sets num" aria-label={t.setScores}>
 						{#each match.sets as s, i (i)}
 							<li><span class:won={s.a > s.b}>{s.a}</span>:<span class:won={s.b > s.a}>{s.b}</span></li>
 						{/each}
 					</ol>
 				{/if}
-				{#if admin}<button class="btn link" onclick={() => (editing = true)}>Edit</button>{/if}
+				{#if admin}<button class="btn link" onclick={() => (editing = true)}>{t.edit}</button>{/if}
 			</div>
 		{:else}
-			<span class="hint">Waiting for the result</span>
+			<span class="hint">{t.waiting}</span>
 		{/if}
 		{#if error}<p class="error full">{error}</p>{/if}
 	</div>

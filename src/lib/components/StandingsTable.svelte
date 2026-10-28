@@ -1,31 +1,35 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { msgs } from '$lib/i18n';
 	import { computeStandings, rankRows } from '$lib/standings';
 	import type { RoundView } from '$lib/types';
 
 	let { rounds, playerIds, names }: { rounds: RoundView[]; playerIds: number[]; names: Record<number, string> } = $props();
 
-	const nameOf = (id: number) => names[id] ?? 'Removed player';
+	const m = $derived(msgs(page.data.lang));
+	const t = $derived(m.standings);
+	const nameOf = (id: number) => names[id] ?? m.removedPlayer;
 	const rows = $derived(rankRows(computeStandings(rounds, playerIds), nameOf));
 	const anyPlayed = $derived(rows.some((r) => r.played > 0));
 	const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 </script>
 
 {#if !anyPlayed}
-	<div class="empty"><strong>No results yet</strong>Standings fill in as soon as the first result is saved.</div>
+	<div class="empty"><strong>{t.emptyTitle}</strong>{t.empty}</div>
 {:else}
 	<div class="table-wrap">
 		<table>
 			<thead>
 				<tr>
 					<th class="l">#</th>
-					<th class="l">Player</th>
-					<th title="Matches played">P</th>
-					<th class="key-h" title="Matches won">W</th>
-					<th title="Matches lost">L</th>
-					<th class="key-h" title="Sets won – sets lost">Sets</th>
-					<th class="key-h" title="Points scored in all sets">Pts</th>
-					<th title="Points conceded">Agst</th>
-					<th title="Point difference">+/−</th>
+					<th class="l">{t.player}</th>
+					<th title={t.pTitle}>{t.p}</th>
+					<th class="key-h" title={t.wTitle}>{t.w}</th>
+					<th title={t.lTitle}>{t.l}</th>
+					<th class="key-h" title={t.setsTitle}>{t.sets}</th>
+					<th class="key-h" title={t.ptsTitle}>{t.pts}</th>
+					<th title={t.agstTitle}>{t.agst}</th>
+					<th title={t.diffTitle}>+/−</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -45,10 +49,7 @@
 			</tbody>
 		</table>
 	</div>
-	<p class="hint">
-		Ranked by matches won, then sets won, then points scored across all sets. Players level on all three share a place. Each player
-		is credited with their pair’s result.
-	</p>
+	<p class="hint">{t.hint}</p>
 {/if}
 
 <style>

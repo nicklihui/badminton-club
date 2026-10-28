@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Hero } from '$lib/hero';
+import { msgs } from '$lib/i18n';
 import {
 	adminCount,
 	checkLogin,
@@ -18,26 +19,22 @@ const safeNext = (next: string | null) => (next && next.startsWith('/') && !next
 export const load: PageServerLoad = ({ locals, url }) => {
 	if (adminCount() === 0) redirect(303, '/setup');
 	if (locals.admin) redirect(303, safeNext(url.searchParams.get('next')));
-	return {
-		hero: {
-			eyebrow: 'Organisers',
-			title: 'Sign in',
-			lead: 'Only organisers need an account. Results and standings are open to everyone.'
-		} satisfies Hero
-	};
+	const m = msgs(locals.lang).login;
+	return { hero: { eyebrow: m.eyebrow, title: m.title, lead: m.lead } satisfies Hero };
 };
 
 export const actions: Actions = {
-	default: async ({ request, cookies, url, getClientAddress }) => {
+	default: async ({ request, cookies, url, locals, getClientAddress }) => {
+		const m = msgs(locals.lang).login;
 		const ip = getClientAddress();
 		const fd = await request.formData();
 		const username = text(fd, 'username');
-		if (loginBlocked(ip)) return fail(429, { username, message: 'Too many attempts. Wait 15 minutes and try again.' });
+		if (loginBlocked(ip)) return fail(429, { username, message: m.tooMany });
 
 		const admin = checkLogin(username, String(fd.get('password') ?? ''));
 		if (!admin) {
 			recordLoginFailure(ip);
-			return fail(400, { username, message: 'That username and password don’t match.' });
+			return fail(400, { username, message: m.mismatch });
 		}
 		cookies.set(SESSION_COOKIE, createSession(admin.id), {
 			path: '/',

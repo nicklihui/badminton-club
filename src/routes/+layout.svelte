@@ -8,14 +8,16 @@
 	import '../app.css';
 	import { page } from '$app/state';
 	import type { Hero } from '$lib/hero';
+	import { langs, msgs } from '$lib/i18n';
 
 	let { data, children } = $props();
 
+	const m = $derived(msgs(data.lang));
 	const hero = $derived(page.data.hero as Hero | undefined);
-	const nav = [
-		{ href: '/', label: 'Tournaments' },
-		{ href: '/players', label: 'Players' }
-	];
+	const nav = $derived([
+		{ href: '/', label: m.nav.tournaments },
+		{ href: '/players', label: m.nav.players }
+	]);
 	const current = (href: string) =>
 		href === '/' ? page.url.pathname === '/' || page.url.pathname.startsWith('/t/') : page.url.pathname.startsWith(href);
 </script>
@@ -49,15 +51,21 @@
 				<a href={item.href} aria-current={current(item.href) ? 'page' : undefined}>{item.label}</a>
 			{/each}
 			{#if data.admin}
-				<a href="/admin" aria-current={current('/admin') ? 'page' : undefined}>Organisers</a>
+				<a href="/admin" aria-current={current('/admin') ? 'page' : undefined}>{m.nav.organisers}</a>
 				<form method="POST" action="/logout">
-					<button class="signout">Sign out</button>
+					<button class="signout">{m.nav.signOut}</button>
 				</form>
 			{:else if data.needsSetup}
-				<a href="/setup">Set up</a>
+				<a href="/setup">{m.nav.setUp}</a>
 			{:else}
-				<a href="/login" aria-current={current('/login') ? 'page' : undefined}>Sign in</a>
+				<a href="/login" aria-current={current('/login') ? 'page' : undefined}>{m.nav.signIn}</a>
 			{/if}
+			<form method="POST" action="/lang" class="lang" aria-label={m.nav.language}>
+				<input type="hidden" name="next" value={page.url.pathname + page.url.search} />
+				{#each langs as l (l)}
+					<button name="lang" value={l} aria-pressed={l === data.lang} lang={l}>{l.toUpperCase()}</button>
+				{/each}
+			</form>
 		</nav>
 	</header>
 
@@ -69,7 +77,7 @@
 			{#if hero.lead || hero.status}
 				<p class="lead">
 					{#if hero.lead}<span>{hero.lead}</span>{/if}
-					{#if hero.status}<span class="status">{hero.status === 'open' ? 'In progress' : 'Finished'}</span>{/if}
+					{#if hero.status}<span class="status">{m.status[hero.status]}</span>{/if}
 				</p>
 			{/if}
 		</section>
@@ -83,7 +91,7 @@
 <footer class="foot">
 	<div class="container">
 		<span class="foot-name">{data.clubName}</span>
-		{#if data.admin}<span> · signed in as {data.admin.username}</span>{/if}
+		{#if data.admin}<span> · {m.signedInAs(data.admin.username)}</span>{/if}
 	</div>
 </footer>
 
@@ -175,6 +183,29 @@
 	nav a[aria-current='page'] {
 		color: var(--on-dark);
 		border-bottom-color: var(--on-dark);
+	}
+	.lang {
+		display: flex;
+		margin-left: 8px;
+		border: 1px solid rgb(255 255 255 / 0.5);
+	}
+	.lang button {
+		padding: 4px 8px;
+		border: 0;
+		background: none;
+		color: rgb(255 255 255 / 0.78);
+		font: inherit;
+		font-weight: 600;
+		font-size: 12px;
+		letter-spacing: 0.1em;
+		cursor: pointer;
+	}
+	.lang button:hover {
+		color: var(--on-dark);
+	}
+	.lang button[aria-pressed='true'] {
+		background: var(--on-dark);
+		color: var(--navy);
 	}
 	nav :focus-visible,
 	.brand:focus-visible,
