@@ -62,12 +62,12 @@ Then start it again with `npm run local`. Players, tournaments and results are k
 
 1. **First start:** open the site and create the first **organiser** account. Organisers can add more organisers under **Organisers**. Viewers don't need an account.
 2. **Create a tournament** on the Tournaments page: name, date, number of courts and sets per match.
-3. **Add players** on the tournament's **Players** tab. Tick club members you've added before, or type new names separated by commas.
+3. **Add players** on the tournament's **Line-up** tab. Tick club members you've added before, or type new names separated by commas.
 4. **Draw a round** on the **Rounds** tab. Each court gets four players, and anyone left over sits out. **Redraw** replaces the latest round as long as it has no results yet.
 5. **Enter results** on each court card, set by set. The third set of a best of 3 is only needed if it's 1–1.
 6. **Standings** update as soon as a result is saved. Each player is credited with their pair's result. Players level on matches won, sets won and points share a place.
-7. If someone leaves early, switch them to **Not playing** on the Players tab. They keep their results and aren't drawn again.
-8. **Finish the tournament** at the bottom of the Players tab. This stops new rounds; results stay visible and the tournament can be reopened.
+7. If someone leaves early, switch them to **Not playing** on the Line-up tab. They keep their results and aren't drawn again.
+8. **Finish the tournament** at the bottom of the Line-up tab, below the tournament settings. This stops new rounds; results stay visible and the tournament can be reopened.
 
 The **Players** page in the top menu shows each club member's totals across all tournaments.
 

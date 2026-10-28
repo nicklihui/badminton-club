@@ -30,6 +30,6 @@ export const actions: Actions = {
 			bestOf: isBestOf(bestOf) ? bestOf : 3,
 			heldOn: isoDate(fd, 'held_on')
 		});
-		redirect(303, `/t/${id}?tab=players`);
+		redirect(303, `/t/${id}?tab=lineup`);
 	}
 };

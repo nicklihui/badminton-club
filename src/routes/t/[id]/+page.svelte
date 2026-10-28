@@ -9,10 +9,11 @@
 
 	let { data, form } = $props();
 
-	const tabs = ['rounds', 'standings', 'players'] as const;
+	const tabs = ['rounds', 'standings', 'lineup'] as const;
 	type Tab = (typeof tabs)[number];
 	const tab = $derived.by((): Tab => {
 		const t = page.url.searchParams.get('tab');
+		if (t === 'players') return 'lineup'; // links from before the tab was renamed
 		return tabs.includes(t as Tab) ? (t as Tab) : 'rounds';
 	});
 
@@ -44,6 +45,10 @@
 		if (unscoredInLatest && !confirm(`Round ${latest!.number} still has ${unscoredInLatest} match${unscoredInLatest > 1 ? 'es' : ''} without a score. Draw round ${nextNumber} anyway?`))
 			e.preventDefault();
 	}
+	const pickAll = (checked: boolean) => (e: MouseEvent) => {
+		const boxes = (e.currentTarget as HTMLElement).closest('fieldset')!.querySelectorAll<HTMLInputElement>('input[name="player"]');
+		for (const box of boxes) box.checked = checked;
+	};
 	const ask = (message: string) => (e: MouseEvent) => {
 		if (!confirm(message)) e.preventDefault();
 	};
@@ -53,7 +58,7 @@
 	<nav class="tabs" aria-label="Tournament sections">
 		<a href="?tab=rounds" data-sveltekit-noscroll aria-current={tab === 'rounds' ? 'page' : undefined}>Rounds<span class="count">{data.rounds.length || ''}</span></a>
 		<a href="?tab=standings" data-sveltekit-noscroll aria-current={tab === 'standings' ? 'page' : undefined}>Standings</a>
-		<a href="?tab=players" data-sveltekit-noscroll aria-current={tab === 'players' ? 'page' : undefined}>Players<span class="count">{data.entries.length || ''}</span></a>
+		<a href="?tab=lineup" data-sveltekit-noscroll aria-current={tab === 'lineup' ? 'page' : undefined}>Line-up<span class="count">{data.entries.length || ''}</span></a>
 	</nav>
 
 	{#if tab === 'rounds'}
@@ -71,7 +76,7 @@
 						</span>
 						<span class="muted small">
 							Matches: {bestOfLabel(t.bestOf).toLowerCase()}{t.bestOf === 1 ? '' : ' sets'} ·
-							<a href="?tab=players#settings">change</a>
+							<a href="?tab=lineup#settings">change</a>
 						</span>
 					</div>
 					<div class="actions">
@@ -92,7 +97,7 @@
 				<div class="empty">
 					<strong>No rounds yet</strong>
 					Each round shuffles everyone into new doubles pairs, avoiding repeat partners where possible.
-					{#if admin && data.entries.length < perCourt}<a class="btn" href="?tab=players">Add players</a>{/if}
+					{#if admin && data.entries.length < perCourt}<a class="btn" href="?tab=lineup">Add players</a>{/if}
 				</div>
 			{/if}
 
@@ -125,6 +130,12 @@
 					{#if data.available.length}
 						<fieldset class="pick">
 							<legend class="hint">Club players</legend>
+							{#if data.available.length > 1}
+								<div class="pick-all">
+									<button type="button" class="btn link" onclick={pickAll(true)}>Select all</button>
+									<button type="button" class="btn link" onclick={pickAll(false)}>Clear</button>
+								</div>
+							{/if}
 							{#each data.available as p (p.id)}
 								<label class="pick-item"><input type="checkbox" name="player" value={p.id} /> {p.name}</label>
 							{/each}
@@ -284,6 +295,11 @@
 	}
 	.pick legend {
 		margin-bottom: 6px;
+	}
+	.pick-all {
+		flex-basis: 100%;
+		display: flex;
+		gap: 16px;
 	}
 	.pick-item {
 		display: inline-flex;
