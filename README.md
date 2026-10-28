@@ -69,7 +69,7 @@ Then start it again with `npm run local`. Players, tournaments and results are k
 7. If someone leaves early, switch them to **Not playing** on the Line-up tab. They keep their results and aren't drawn again.
 8. **Finish the tournament** at the bottom of the Line-up tab, below the tournament settings. This stops new rounds; results stay visible and the tournament can be reopened.
 
-The **Players** page in the top menu shows each club member's totals across all tournaments.
+The **Players** page in the top menu shows each club member's totals across all tournaments, ranked by win %.
 
 ## Settings
 

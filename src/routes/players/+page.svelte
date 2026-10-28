@@ -6,15 +6,17 @@
 	let editing = $state<number | null>(null);
 	let showArchived = $state(false);
 
+	// Points depend on each tournament's sets per match, so the club table ranks by win rate instead.
+	// Players who haven't played sort last.
+	const winRate = (s: { won: number; played: number }) => (s.played ? s.won / s.played : -1);
 	const rows = $derived(
 		data.players
 			.filter((p) => showArchived || !p.archived)
 			.sort(
 				(a, b) =>
 					Number(a.archived) - Number(b.archived) ||
+					winRate(b.stats) - winRate(a.stats) ||
 					b.stats.won - a.stats.won ||
-					b.stats.setsWon - a.stats.setsWon ||
-					b.stats.pointsFor - a.stats.pointsFor ||
 					a.name.localeCompare(b.name)
 			)
 	);
@@ -47,7 +49,6 @@
 						<th>Won</th>
 						<th>Win %</th>
 						<th>Sets</th>
-						<th>Points</th>
 						{#if data.admin}<th></th>{/if}
 					</tr>
 				</thead>
@@ -78,10 +79,9 @@
 							</td>
 							<td>{p.stats.tournaments}</td>
 							<td>{p.stats.played}</td>
-							<td class="key">{p.stats.won}</td>
-							<td>{pct(p.stats.won, p.stats.played)}</td>
+							<td>{p.stats.won}</td>
+							<td class="key">{pct(p.stats.won, p.stats.played)}</td>
 							<td>{p.stats.setsWon}–{p.stats.setsLost}</td>
-							<td>{p.stats.pointsFor}</td>
 							{#if data.admin}
 								<td class="tools">
 									<button class="btn link" onclick={() => (editing = p.id)}>Rename</button>
@@ -97,6 +97,7 @@
 				</tbody>
 			</table>
 		</div>
+		<p class="hint">Ranked by win % across all tournaments, then by matches won. Points are shown in each tournament’s standings.</p>
 		{#if archivedCount}
 			<label class="hint toggle"
 				><input type="checkbox" bind:checked={showArchived} /> Show {archivedCount} archived player{archivedCount === 1 ? '' : 's'}</label
