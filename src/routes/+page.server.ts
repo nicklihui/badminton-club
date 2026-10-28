@@ -9,7 +9,7 @@ import { createTournament, listTournaments } from '$lib/server/repo';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = () => ({
-	hero: { eyebrow: env.CLUB_NAME || 'Badminton Club', title: 'Tournaments' } satisfies Hero,
+	hero: { eyebrow: env.CLUB_NAME || 'SG ULM DONAU/ILLER', title: 'Tournaments' } satisfies Hero,
 	tournaments: listTournaments(),
 	formats: Object.entries(formats).map(([id, f]) => ({ id, name: f.name, description: f.description }))
 });

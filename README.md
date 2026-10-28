@@ -1,6 +1,6 @@
-# Badminton Club
+# SG ULM DONAU/ILLER Badminton
 
-A small website for running club tournaments. Organisers draw random doubles rounds and enter results set by set. Everyone else follows the draw and standings live on their phone.
+A small website for running the club's badminton tournaments. Organisers draw random doubles rounds and enter results set by set. Everyone else follows the draw and standings live on their phone.
 
 - **Random-partner doubles:** every round shuffles the players into new pairs, avoids repeat partners and opponents, and rotates who sits out fairly.
 - **Results per set:** matches are one set, best of 3 or best of 5, with the real points of each set (e.g. 21:15).
@@ -77,7 +77,7 @@ Optional. Put these in a `.env` file in the project folder, or set them as envir
 
 | Variable        | Default          | Meaning                                  |
 | --------------- | ---------------- | ---------------------------------------- |
-| `CLUB_NAME`     | `Badminton Club` | Name shown in the header and page titles |
+| `CLUB_NAME`     | `SG ULM DONAU/ILLER` | Name shown in the header and page titles |
 | `PORT`          | `3000`           | Port the site listens on                 |
 | `DATABASE_PATH` | `data/club.db`   | Where results are stored                 |
 

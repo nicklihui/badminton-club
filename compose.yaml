@@ -5,7 +5,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      CLUB_NAME: "Badminton Club"
+      CLUB_NAME: "SG ULM DONAU/ILLER"
       # The public URL people use to reach the site (required for forms to work)
       ORIGIN: "https://club.example.org"
     volumes:
