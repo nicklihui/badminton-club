@@ -21,7 +21,8 @@ const en = {
 		signOut: 'Sign out',
 		setUp: 'Set up',
 		signIn: 'Sign in',
-		language: 'Language'
+		language: 'Language',
+		join: 'QR code'
 	},
 	signedInAs: (user: string) => `signed in as ${user}`,
 	status: { open: 'In progress', finished: 'Finished' },
@@ -223,6 +224,16 @@ const en = {
 		button: 'Create organiser'
 	},
 
+	join: {
+		eyebrow: 'Open on phones',
+		title: 'Scan to follow',
+		lead: 'Point a phone camera at the code to open the draw, results and standings.',
+		sameWifi: 'Phones and tablets must be on the same Wi-Fi as this computer.',
+		print: 'Print',
+		other: 'If the code doesn’t open the site, try this address of the computer instead:',
+		offline: 'This computer isn’t connected to a network, so phones can’t reach the site yet. Connect it to the Wi-Fi and reload this page.'
+	},
+
 	/** Messages the server sends back when it refuses something. */
 	problems: {
 		signInRequired: 'Sign in as an organiser to do that.',
@@ -274,7 +285,8 @@ const de: Messages = {
 		signOut: 'Abmelden',
 		setUp: 'Einrichten',
 		signIn: 'Anmelden',
-		language: 'Sprache'
+		language: 'Sprache',
+		join: 'QR-Code'
 	},
 	signedInAs: (user) => `angemeldet als ${user}`,
 	status: { open: 'Läuft', finished: 'Beendet' },
@@ -473,6 +485,16 @@ const de: Messages = {
 		lead: 'Organisatoren melden sich an, um Turniere anzulegen, Runden auszulosen und Ergebnisse einzutragen. Alle anderen sehen die Ergebnisse ohne Konto.',
 		hint: 'Mindestens 10 Zeichen. Weitere Organisatoren lassen sich danach hinzufügen.',
 		button: 'Organisator anlegen'
+	},
+
+	join: {
+		eyebrow: 'Auf dem Handy öffnen',
+		title: 'Scannen und mitverfolgen',
+		lead: 'Richte die Handykamera auf den Code, um Auslosung, Ergebnisse und Tabelle zu öffnen.',
+		sameWifi: 'Handys und Tablets müssen im selben WLAN sein wie dieser Computer.',
+		print: 'Drucken',
+		other: 'Falls der Code die Seite nicht öffnet, probiere stattdessen diese Adresse des Computers:',
+		offline: 'Dieser Computer ist mit keinem Netzwerk verbunden, daher erreichen Handys die Seite noch nicht. Verbinde ihn mit dem WLAN und lade die Seite neu.'
 	},
 
 	problems: {

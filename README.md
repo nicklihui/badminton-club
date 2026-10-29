@@ -41,7 +41,9 @@ Badminton club site is running.
   On phones (Wi-Fi): http://<laptop-ip>:3000
 ```
 
-`<laptop-ip>` is the laptop's address on the Wi-Fi network. The command prints the real one.
+`<laptop-ip>` is the laptop's address on the Wi-Fi network. The command prints the real one, together with a QR code that opens it.
+
+The **QR code** page in the site's menu shows the same code large, ready to print or show on a screen in the hall. Players scan it with their phone camera instead of typing the address.
 
 - Phones must be on the same Wi-Fi as the laptop.
 - On Windows, allow Node.js through the firewall when asked, choosing **private networks**. Otherwise phones can't connect.

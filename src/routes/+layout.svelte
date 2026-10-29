@@ -16,7 +16,8 @@
 	const hero = $derived(page.data.hero as Hero | undefined);
 	const nav = $derived([
 		{ href: '/', label: m.nav.tournaments },
-		{ href: '/players', label: m.nav.players }
+		{ href: '/players', label: m.nav.players },
+		{ href: '/join', label: m.nav.join }
 	]);
 	const current = (href: string) =>
 		href === '/' ? page.url.pathname === '/' || page.url.pathname.startsWith('/t/') : page.url.pathname.startsWith(href);
